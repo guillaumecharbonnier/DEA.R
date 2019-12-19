@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/usr/bin/env Rscript
 # Script to automate differential expression analysis using the following R algorithms: DESeq2, edgeR and limma-voom
 # Based on manuals, pieces of code found on the internet and helpful comments of colleagues
 ###Required input is:###
@@ -259,7 +259,9 @@ proc_limma_voom <- function(inputdata) {
     } else if (inputdata$source == "salmon") {
         dge <- calcNormFactors(DGEList(inputdata$counts$B$counts))
     }
-    v <- voom(dge, design=design, normalization="none") #For outliers, use sample quality weights
+    #v <- voom(dge, design=design, normalization="none") #For outliers, use sample quality weights
+    #Error in voom(dge, design = design, normalization = "none") :·unused argument (normalization = "none")
+    v <- voom(dge, design=design)
     normalizedCounts <- ens2symbol(
         dearesult=v$E,
         columnsOfInterest=c("gene", colnames(v$E)),
@@ -502,7 +504,8 @@ exploratoryDataAnalysisedgeR <- function(disp){
 
 
 ens2symbol <- function(dearesult, columnsOfInterest, colnames) { #convert ensembl identifiers to gene symbols using biomaRt, select columns and rename
-    mart <- useMart("ensembl", dataset="hsapiens_gene_ensembl")
+    #mart <- useMart("ensembl", dataset="hsapiens_gene_ensembl") Seems deprecated.
+    mart <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
     ann <- getBM(
         attributes=c("ensembl_gene_id", "hgnc_symbol"),
         filters="ensembl_gene_id",
